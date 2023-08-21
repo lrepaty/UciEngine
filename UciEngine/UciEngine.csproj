@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Platforms>AnyCPU;x64</Platforms>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Lubos Repaty</Authors>
+    <Description>C# dotnet 7 Chess wrapper for interacting with uci chess engine processes.</Description>
+    <PackageTags>chess, uci, engine</PackageTags>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="Uci\Cfish NUMA 060821 x64 BMI2.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Uci\SugaR AI 2.40 64.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Uci\Uci.bin">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
