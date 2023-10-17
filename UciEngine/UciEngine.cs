@@ -29,16 +29,26 @@ namespace Uci
         /// Command
         /// </summary>
         private string m_command;
-        
+
         /// <summary>
-        /// sCommand
+        /// created
         /// </summary>
         private bool m_created = false;
-        
+
+        /// <summary>
+        /// Validate running
+        /// </summary>
+        private bool m_validate = false;
+
+        /// <summary>
+        /// Validate time in msec
+        /// </summary>
+        private const int m_validateTime = 100;
+
         /// <summary>
         /// Event handler for process stdout.  This is where we parse responses
         /// </summary>
-        
+
         public event DataReceivedEventHandler? OutputDataReceived;
 
         /// <summary>
@@ -134,8 +144,6 @@ namespace Uci
             Error = "";
             if (commandString.StartsWith(UciCommand.IsReady))
                 m_expected = UciCommand.ReadyOk;
-            else if (commandString.StartsWith(UciCommand.UciNewGame))
-                m_expected = "";
             else if (commandString.StartsWith(UciCommand.Uci))
                 m_expected = UciCommand.UciOk;
             else if (commandString.StartsWith(UciCommand.Debug))
@@ -206,19 +214,18 @@ namespace Uci
         /// <param name="movestogo">there are x moves to the next time control,
         ///                         this will only be sent if x > 0,
         ///                         if you don't get this and get the wtime and btime it's sudden death</param>
-        public void GoGameTime(TimeSpan wtime, TimeSpan btime, TimeSpan winc, TimeSpan binc, int movestogo)
+        public void GoGameTime(int wtime, TimeSpan btime, int winc, int binc, int movestogo)
         {
-            SendCommand(string.Format(UciCommand.GoGameTime,
-                wtime.TotalMilliseconds, btime.TotalMilliseconds, winc.TotalMilliseconds, binc.TotalMilliseconds, movestogo));
+            SendCommand(string.Format(UciCommand.GoGameTime, wtime, btime, winc, binc, movestogo));
         }
 
         /// <summary>
         /// Go MoveTime
         /// </summary>
         /// <param name="movetime">search exactly x mseconds</param>
-        public void GoMoveTime(TimeSpan movetime)
+        public void GoMoveTime(int movetime)
         {
-            SendCommand(string.Format(UciCommand.GoMoveTime, movetime.TotalMilliseconds));
+            SendCommand(string.Format(UciCommand.GoMoveTime, movetime));
         }
 
         /// <summary>
@@ -261,7 +268,9 @@ namespace Uci
         /// </summary>
         public void Validate()
         {
-            GoMoveTime(TimeSpan.FromMilliseconds(1));
+            m_validate = true;
+            GoMoveTime(m_validateTime);
+            m_validate = false;
         }
 
         /// <summary>
@@ -307,9 +316,9 @@ namespace Uci
             // better to wait at the caller level in the real app and let this 
             // thread return since it's probably the UI thread, or a worker that
             // could do other work while waiting on the engine
-            if (m_command.StartsWith(UciCommand.IsReady) || m_command.StartsWith("setoption name ") || m_command == "go movetime 1")
+            if (m_validate)
             {
-                return m_readyToExecute.WaitOne(100);
+                return m_readyToExecute.WaitOne(m_validateTime);
             }
             else
                 return m_readyToExecute.WaitOne();
