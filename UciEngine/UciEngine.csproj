@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -14,6 +14,11 @@
     <FileVersion>1.0.0</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Version>2.2.0</Version>
+    <PackageProjectUrl>https://github.com/lrepaty/UciEngine</PackageProjectUrl>
+    <Copyright>Copyright © Lubos Repaty 2023-2023</Copyright>
+    <Title></Title>
+    <Company>Lubos Repaty</Company>
+    <Product>UciEngine  (Core)</Product>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,7 +36,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Uci\Uci.bin">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

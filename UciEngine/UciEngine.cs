@@ -6,11 +6,6 @@ namespace Uci
     {
         #region Members
         /// <summary>
-        /// Internal event fired when a command is completed fully
-        /// </summary>
-        private AutoResetEvent m_readyToExecute = new AutoResetEvent(false);
-        
-        /// <summary>
         /// Process
         /// </summary
         private Process? m_process;
@@ -19,12 +14,12 @@ namespace Uci
         // Expected field and Property
         /// </summary>
         private string m_expected;
-        
+
         /// <summary>
         /// Synchronization after command
         /// </summary>
         private bool m_syncAfterCommand;
-        
+
         /// <summary>
         /// Command
         /// </summary>
@@ -41,6 +36,11 @@ namespace Uci
         private bool m_validate = false;
 
         /// <summary>
+        /// thrue when commands are finished
+        /// </summary>
+        private bool m_uciCommandExecuted;
+
+        /// <summary>
         /// Validate time in msec
         /// </summary>
         private const int m_validateTime = 100;
@@ -48,7 +48,6 @@ namespace Uci
         /// <summary>
         /// Event handler for process stdout.  This is where we parse responses
         /// </summary>
-
         public event DataReceivedEventHandler? OutputDataReceived;
 
         /// <summary>
@@ -142,6 +141,7 @@ namespace Uci
             m_command = commandString;
             m_expected = "";
             Error = "";
+            m_uciCommandExecuted = false;
             if (commandString.StartsWith(UciCommand.IsReady))
                 m_expected = UciCommand.ReadyOk;
             else if (commandString.StartsWith(UciCommand.Uci))
@@ -158,7 +158,7 @@ namespace Uci
             m_process.OutputDataReceived += new DataReceivedEventHandler(OnDataReceived);
 
             m_syncAfterCommand = false; // Reset from prior use
-            if (m_expected.Length == 0)
+            if (m_expected == "")
             {
                 // No response is given, so sync to "isready/readyok"
                 m_syncAfterCommand = true;
@@ -318,10 +318,16 @@ namespace Uci
             // could do other work while waiting on the engine
             if (m_validate)
             {
-                return m_readyToExecute.WaitOne(m_validateTime);
+                Thread.Sleep(m_validateTime);
             }
             else
-                return m_readyToExecute.WaitOne();
+            {
+                while (!m_uciCommandExecuted)
+                {
+                    Thread.Sleep(1);
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -336,8 +342,9 @@ namespace Uci
             // expected to ReadyOk
             if (m_syncAfterCommand)
             {
-                m_command = UciCommand.Uci;
-                m_expected = UciCommand.UciOk;
+                m_syncAfterCommand = false;
+                m_command = UciCommand.IsReady;
+                m_expected = UciCommand.ReadyOk;
                 sw.WriteLine(m_command);
             }
 
@@ -354,7 +361,7 @@ namespace Uci
             // If we're asking for a move - then save the response we care about
             // the SAN for the move - it comes right after "bestmove"
             // If no move (e.g. mate) will return 'bestmove (none)'
-            Trace.WriteLine($"Engine UciEngine: {e.Response}");
+            Trace.WriteLine($"Engine {EngineName} UciEngine: {e.Response}");
             if (e.Response.StartsWith("bestmove"))
             {
                 string[] parts = e.Response.Split(' ');
@@ -384,38 +391,34 @@ namespace Uci
                     Error += "\r\n";
                 Error += e.Data.Substring(find.Length);
             }
-            if (!m_syncAfterCommand)
+            find = "id name ";
+            if (e.Data.StartsWith(find))
+                EngineName = e.Data.Substring(find.Length);
+            if (!m_created)
             {
-                find = "id name ";
+                find = "option name ";
                 if (e.Data.StartsWith(find))
-                    EngineName = e.Data.Substring(find.Length);
-                if (!m_created)
                 {
-                    find = "option name ";
-                    if (e.Data.StartsWith(find))
+                    startpos = find.Length;
+                    endpos = e.Data.IndexOf(" type");
+                    key = e.Data.Substring(startpos, endpos - startpos);
+                    find = "default ";
+                    startpos = e.Data.IndexOf(find) + find.Length;
+                    if (startpos > find.Length)
                     {
-                        startpos = find.Length;
-                        endpos = e.Data.IndexOf(" type");
-                        key = e.Data.Substring(startpos, endpos - startpos);
-                        find = "default ";
-                        startpos = e.Data.IndexOf(find) + find.Length;
-                        if (startpos > find.Length)
-                        {
-                            endpos = e.Data.IndexOf(" ", startpos);
-                            if (endpos > -1)
-                                value = e.Data.Substring(startpos, endpos - startpos);
-                            else
-                                value = e.Data.Substring(startpos);
-                            value = value.Replace("<empty>", "");
-                            Options[key] = value;
-                        }
+                        endpos = e.Data.IndexOf(" ", startpos);
+                        if (endpos > -1)
+                            value = e.Data.Substring(startpos, endpos - startpos);
+                        else
+                            value = e.Data.Substring(startpos);
+                        value = value.Replace("<empty>", "");
+                        Options[key] = value;
                     }
                 }
             }
             // compare e.Data to the expected string
             if (e.Data.StartsWith(m_expected))
             {
-
                 // raise interface event here if there is a handler
                 if (m_onUciCommandExecuted != null)
                 {
@@ -424,9 +427,7 @@ namespace Uci
                     // again this could be left up
                     m_process!.OutputDataReceived -= OnDataReceived;
                 }
-
-                // Signal event that we're done processing this command
-                m_readyToExecute.Set();
+                m_uciCommandExecuted = true;
             }
         }
         #endregion
