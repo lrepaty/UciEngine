@@ -13,7 +13,7 @@
     <AssemblyVersion>1.0.0</AssemblyVersion>
     <FileVersion>1.0.0</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>2.2.0</Version>
+    <Version>2.3.0</Version>
     <PackageProjectUrl>https://github.com/lrepaty/UciEngine</PackageProjectUrl>
     <Copyright>Copyright © Lubos Repaty 2023-2023</Copyright>
     <Title></Title>
@@ -36,7 +36,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Uci\Uci.bin">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
