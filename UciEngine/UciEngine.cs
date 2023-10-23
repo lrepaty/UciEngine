@@ -167,11 +167,8 @@ namespace Uci
             Execute(m_process.StandardInput);
             if (Error != "")
             {
-                if (m_process.HasExited)
-                {
-                    Dispose();
-                    throw new Exception(Error);
-                }
+                Dispose();
+                throw new Exception(Error);
             }
         }
 
@@ -382,7 +379,18 @@ namespace Uci
             string key;
             string value;
             if (e.Data == null)
+            {
+                if (Error != "")
+                {
+                    // raise interface event here if there is a handler
+                    if (m_onUciCommandExecuted != null)
+                    {
+                        m_process!.OutputDataReceived -= OnDataReceived;
+                    }
+                    m_uciCommandExecuted = true;
+                }
                 return;
+            }
             OutputDataReceived?.Invoke(this, e);
             find = "info string ERROR: ";
             if (e.Data.StartsWith(find))

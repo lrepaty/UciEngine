@@ -7,36 +7,39 @@ namespace UciEngine.Tests
     public class UnitTestEngine
     {
         private string? response;
+        private string uciPath = "Uci/uci.bin";
+        private string cfishPath = "Uci/Cfish NUMA 060821 x64 BMI2.exe";
+        private string sugarPath = "Uci/SugaR AI 2.40 64.exe";
         [TestMethod]
-        public void TestStartEngine()
+        public void TestUciStartEngine()
         {
             string expected;
             string actual;
-            expected = "Uci/uci.bin";
+            expected = uciPath;
             Uci.UciEngine uciEngine = new Uci.UciEngine(expected);
             actual = uciEngine.EnginePath;
             actual.Should().Be(expected);
         }
 
         [TestMethod]
-        public void TestSetOption()
+        public void TestUciSetOption()
         {
             string expected;
             string actual;
             expected = "4";
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/uci.bin");
+            Uci.UciEngine uciEngine = new Uci.UciEngine(uciPath);
             uciEngine.SetOption("Threads", expected);
             actual = uciEngine.Options["Threads"];
             actual.Should().Be(expected);
         }
 
         [TestMethod]
-        public void TestUci()
+        public void TestUciUci()
         {
             string expected;
             string? actual;
             expected = UciCommand.UciOk;
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/uci.bin");
+            Uci.UciEngine uciEngine = new Uci.UciEngine(uciPath);
             uciEngine.OutputDataReceived += OutputDataReceived;
             uciEngine.SendCommand(UciCommand.Uci);
             actual = response;
@@ -44,12 +47,12 @@ namespace UciEngine.Tests
         }
 
         [TestMethod]
-        public void TestIsReady()
+        public void TestUciIsReady()
         {
             string expected;
             string? actual;
             expected = UciCommand.ReadyOk;
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/uci.bin");
+            Uci.UciEngine uciEngine = new Uci.UciEngine(uciPath);
             uciEngine.OutputDataReceived += OutputDataReceived;
             uciEngine.SendCommand(UciCommand.IsReady);
             actual = response;
@@ -57,12 +60,12 @@ namespace UciEngine.Tests
         }
 
         [TestMethod]
-        public void TestIsDebug()
+        public void TestUciIsDebug()
         {
             string expected;
             string? actual;
             expected = UciCommand.DebugResponse;
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/uci.bin");
+            Uci.UciEngine uciEngine = new Uci.UciEngine(uciPath);
             uciEngine.OutputDataReceived += OutputDataReceived;
             uciEngine.SendCommand(UciCommand.Debug);
             actual = response;
@@ -70,14 +73,98 @@ namespace UciEngine.Tests
         }
 
         [TestMethod]
-        public void TestCfishIsReady()
+        public void TestUciGo()
         {
             string expected;
-            expected = UciCommand.ReadyOk;
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/Cfish NUMA 060821 x64 BMI2.exe");
+            string? actual;
+            expected = UciCommand.BestMoveResponse;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(uciPath);
             uciEngine.OutputDataReceived += OutputDataReceived;
-            Action action = new Action(() => uciEngine.Validate());
+            uciEngine.GoMoveTime(100);
+            actual = response;
+            actual.Should().StartWith(expected);
+        }
+
+        [TestMethod]
+        public void TestUciValidate()
+        {
+            string expected;
+            string? actual;
+            expected = UciCommand.BestMoveResponse;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(uciPath);
+            uciEngine.OutputDataReceived += OutputDataReceived;
+            uciEngine.Validate();
+            actual = response;
+            actual.Should().StartWith(expected);
+        }
+
+
+        [TestMethod]
+        public void TestUciEvalFile()
+        {
+            string expected;
+            string? actual;
+            expected = UciCommand.BestMoveResponse;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(uciPath);
+            uciEngine.OutputDataReceived += OutputDataReceived;
+            uciEngine.SetOption("EvalFile", "Test.nnue");
+            uciEngine.Validate();
+            actual = response;
+            actual.Should().StartWith(expected);
+        }
+
+        [TestMethod]
+        public void TestCfishStartEngine()
+        {
+            string expected;
+            string actual;
+            expected = cfishPath;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(expected);
+            actual = uciEngine.EnginePath;
+            actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void TestCfishSetOption()
+        {
+            Uci.UciEngine uciEngine = new Uci.UciEngine(cfishPath);
+            Action action = new Action(() => uciEngine.SetOption("Threads", "4"));
             action.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestCfishUci()
+        {
+            string expected;
+            string? actual;
+            expected = UciCommand.UciOk;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(cfishPath);
+            uciEngine.OutputDataReceived += OutputDataReceived;
+            uciEngine.SendCommand(UciCommand.Uci);
+            actual = response;
+            actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void TestCfishIsReady()
+        {
+            Uci.UciEngine uciEngine = new Uci.UciEngine(cfishPath);
+            uciEngine.OutputDataReceived += OutputDataReceived;
+            Action action = new Action(() => uciEngine.SendCommand(UciCommand.IsReady));
+            action.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestCfishIsDebug()
+        {
+            string expected;
+            string? actual;
+            expected = UciCommand.DebugResponse;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(cfishPath);
+            uciEngine.OutputDataReceived += OutputDataReceived;
+            uciEngine.SendCommand(UciCommand.Debug);
+            actual = response;
+            actual.Should().Be(expected);
         }
 
         [TestMethod]
@@ -85,7 +172,18 @@ namespace UciEngine.Tests
         {
             string expected;
             expected = UciCommand.ReadyOk;
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/Cfish NUMA 060821 x64 BMI2.exe");
+            Uci.UciEngine uciEngine = new Uci.UciEngine(cfishPath);
+            uciEngine.OutputDataReceived += OutputDataReceived;
+            Action action = new Action(() => uciEngine.GoMoveTime(100));
+            action.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestCfishValidate()
+        {
+            string expected;
+            expected = UciCommand.ReadyOk;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(cfishPath);
             uciEngine.OutputDataReceived += OutputDataReceived;
             Action action = new Action(() => uciEngine.Validate());
             action.Should().Throw<Exception>();
@@ -96,11 +194,50 @@ namespace UciEngine.Tests
         {
             string expected;
             expected = UciCommand.ReadyOk;
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/Cfish NUMA 060821 x64 BMI2.exe");
+            Uci.UciEngine uciEngine = new Uci.UciEngine(cfishPath);
             uciEngine.OutputDataReceived += OutputDataReceived;
-            uciEngine.SetOption("EvalFile", "Test.nnue");
-            Action action = new Action(() => uciEngine.Validate());
+            Action action = new Action(() =>
+            {
+                uciEngine.SetOption("EvalFile", "Test.nnue");
+                uciEngine.Validate();
+            });
             action.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestSugaRStartEngine()
+        {
+            string expected;
+            string actual;
+            expected = sugarPath;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(expected);
+            actual = uciEngine.EnginePath;
+            actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void TestSugaRSetOption()
+        {
+            string expected;
+            string actual;
+            expected = "4";
+            Uci.UciEngine uciEngine = new Uci.UciEngine(sugarPath);
+            uciEngine.SetOption("Threads", expected);
+            actual = uciEngine.Options["Threads"];
+            actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void TestSugaRUci()
+        {
+            string expected;
+            string? actual;
+            expected = UciCommand.UciOk;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(sugarPath);
+            uciEngine.OutputDataReceived += OutputDataReceived;
+            uciEngine.SendCommand(UciCommand.Uci);
+            actual = response;
+            actual.Should().Be(expected);
         }
 
         [TestMethod]
@@ -109,7 +246,7 @@ namespace UciEngine.Tests
             string expected;
             string? actual;
             expected = UciCommand.ReadyOk;
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/SugaR AI 2.40 64.exe");
+            Uci.UciEngine uciEngine = new Uci.UciEngine(sugarPath);
             uciEngine.OutputDataReceived += OutputDataReceived;
             uciEngine.SendCommand(UciCommand.IsReady);
             actual = response;
@@ -117,25 +254,52 @@ namespace UciEngine.Tests
         }
 
         [TestMethod]
-        public void TestSugaR2GO()
+        public void TestSugaRIsDebug()
+        {
+            string expected;
+            string? actual;
+            expected = UciCommand.DebugResponse;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(sugarPath);
+            uciEngine.OutputDataReceived += OutputDataReceived;
+            uciEngine.SendCommand(UciCommand.Debug);
+            actual = response;
+            actual.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void TestSugaRGo()
         {
             string expected;
             expected = UciCommand.ReadyOk;
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/SugaR AI 2.40 64.exe");
+            Uci.UciEngine uciEngine = new Uci.UciEngine(sugarPath);
+            uciEngine.OutputDataReceived += OutputDataReceived;
+            Action action = new Action(() => uciEngine.GoMoveTime(100));
+            action.Should().Throw<Exception>();
+        }
+
+        [TestMethod]
+        public void TestSugaRValidate()
+        {
+            string expected;
+            expected = UciCommand.ReadyOk;
+            Uci.UciEngine uciEngine = new Uci.UciEngine(sugarPath);
             uciEngine.OutputDataReceived += OutputDataReceived;
             Action action = new Action(() => uciEngine.Validate());
             action.Should().Throw<Exception>();
         }
 
         [TestMethod]
-        public void TestSugaR2EvalFile()
+        public void TestSugaREvalFile()
         {
             string expected;
             expected = UciCommand.ReadyOk;
-            Uci.UciEngine uciEngine = new Uci.UciEngine("Uci/SugaR AI 2.40 64.exe");
+            Uci.UciEngine uciEngine = new Uci.UciEngine(sugarPath);
             uciEngine.OutputDataReceived += OutputDataReceived;
-            uciEngine.SetOption("EvalFile", "Test.nnue");
-            Action action = new Action(() => uciEngine.Validate());
+            Action action = new Action(() =>
+            {
+                uciEngine.SetOption("EvalFile", "Test.nnue");
+                uciEngine.Validate();
+            });
             action.Should().Throw<Exception>();
         }
 
