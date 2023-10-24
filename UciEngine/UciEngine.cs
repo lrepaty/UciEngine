@@ -31,11 +31,6 @@ namespace Uci
         private bool m_created = false;
 
         /// <summary>
-        /// Validate running
-        /// </summary>
-        private bool m_validate = false;
-
-        /// <summary>
         /// thrue when commands are finished
         /// </summary>
         private bool m_uciCommandExecuted;
@@ -265,9 +260,7 @@ namespace Uci
         /// </summary>
         public void Validate()
         {
-            m_validate = true;
             GoMoveTime(m_validateTime);
-            m_validate = false;
         }
 
         /// <summary>
@@ -313,16 +306,9 @@ namespace Uci
             // better to wait at the caller level in the real app and let this 
             // thread return since it's probably the UI thread, or a worker that
             // could do other work while waiting on the engine
-            if (m_validate)
+            while (!m_uciCommandExecuted)
             {
-                Thread.Sleep(m_validateTime);
-            }
-            else
-            {
-                while (!m_uciCommandExecuted)
-                {
-                    Thread.Sleep(1);
-                }
+                Thread.Sleep(1);
             }
             return true;
         }
