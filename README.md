@@ -1,11 +1,11 @@
 # Introduction
 
-C# dotnet 7.0 Communication via Process class in C# with UCI chess engine
+C# dotnet 8.0 Communication via Process class in C# with UCI chess engine
 UCI chess engine using UCI protocol https://www.wbec-ridderkerk.nl/html/UCIProtocol.html
 
 # Getting started
 ## Prerequisites
-dotnet 7.0
+dotnet 8.0
 
 ## Installation
 You can install it with the Package Manager in your IDE or alternatively using the command line:
