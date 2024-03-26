@@ -10,10 +10,10 @@
     <Authors>Lubos Repaty</Authors>
     <Description>C# dotnet 7 Chess wrapper for interacting with uci chess engine processes.</Description>
     <PackageTags>chess, uci, engine</PackageTags>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
-    <FileVersion>1.0.0</FileVersion>
+    <AssemblyVersion>2.6.0</AssemblyVersion>
+    <FileVersion>2.6.0</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Version>2.5.0</Version>
+    <Version>2.6.0</Version>
     <PackageProjectUrl>https://github.com/lrepaty/UciEngine</PackageProjectUrl>
     <Copyright>Copyright © Lubos Repaty 2023-2023</Copyright>
     <Title></Title>
